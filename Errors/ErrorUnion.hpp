@@ -5,6 +5,10 @@
 #include "Errors.hpp"
 
 namespace Meta {
+    /**
+     * @brief Contains etiher an error or a return value depending on the result
+     *         of an operation.
+     */
     template<typename T>
     class ErrorUnion {
     private:

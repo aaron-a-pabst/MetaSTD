@@ -15,6 +15,10 @@ namespace Meta {
         LOG_LEVEL_DEBUG = 3,
     } LogLevel;
 
+    /**
+     * @brief An abstract logger wrapper for interfacing with a given system's
+     *         logging system.
+     */
     class ILogger {
     private:
         virtual const char* getTimestamp() = 0;
@@ -142,6 +146,7 @@ namespace Meta {
         }
     };
 
+    // If you find youself using this class directly, you're bad and you should feel bad.
     class LogBroker {
     private:
         static inline ILogger* logger;
@@ -160,9 +165,15 @@ namespace Meta {
         }
     };
 
+    /**
+     * @brief The current logging level
+     */
     #define LOG_LEVEL LogBroker::getLogger()->getLevel()
     #define SET_LOG_LEVEL(level) LogBroker::getLogger()->setLevel(level)
 
+    /**
+     * @brief Enter text into the log without headers, newlines, or carriage returns.
+     */
     #define RAW_LOG(msg) LogBroker::getLogger()->rawLog(msg)
 
     #define LOG(level, msg, ...)  Meta::LogBroker::getLogger()->log(level, msg, __FILE__, __LINE__, ##__VA_ARGS__)

@@ -137,7 +137,7 @@ public:
      * @param from A reference to the T source.
      * @param offset Where in from to start copying.
      * @param count How many T's to copy.
-     * @return An error if bounds or capacities are violated, void otherwise.
+     * @return An error if bounds or capacities are violated. Void otherwise.
      */
     template<size_t N>
     ErrorUnion<void> copy(const Buffer<T, N>& from, size_t offset = 0, size_t count = (size_t)-1) {
