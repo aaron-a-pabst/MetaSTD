@@ -29,13 +29,8 @@ namespace Meta {
     template<size_t N>
     std::array<ErrorDef, N> Errors<N>::errors;
 
-    constexpr const char* simplifyFileName(const char* file) {   
-        return strrchr(file, '/') ? strrchr(file, '/') + 1 : file;
-    }
-
-    constexpr ErrorDef registerError(const char* errorName, const char* file = __FILE__) {
-        return Errors<__COUNTER__>::registerError(errorName, simplifyFileName(file));
-    }
+    #define SIMPLIFY_FILE_NAME(file) strrchr(file, '/') ? strrchr(file, '/') + 1 : file
+    #define REGISTER_ERROR(errorName) Errors<__COUNTER__>::registerError(errorName, SIMPLIFY_FILE_NAME(__FILE__))
 
     /**
     * @brief Global error registry
@@ -56,5 +51,7 @@ namespace Meta {
     inline bool operator==(const ErrorDef& lhs, const Error& rhs) {
         return rhs == lhs;
     }
+
+    #define MAKE_ERROR(errorDef, msg) Error{errorDef, msg, __LINE__}
 }
   
