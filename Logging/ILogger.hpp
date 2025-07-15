@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <array>
+#include <iostream>
+#include <ctime>
 
 namespace Meta {
     typedef enum {
@@ -46,7 +48,7 @@ namespace Meta {
         }
 
         void log(LogLevel level, const char* msg, const char* file, size_t line) {
-            if (level < this->level) 
+            if (level > this->level) 
                 return;
             
             // Log level string
@@ -75,7 +77,7 @@ namespace Meta {
         // printf style log
         template<typename... Args>
         void log(LogLevel level, const char* msg, const char* file, size_t line, Args... args) {
-            if (level < this->level) return;
+            if (level > this->level) return;
             
             // Log level string
             writeLevel(level);
@@ -121,8 +123,52 @@ namespace Meta {
             
     };
 
-    static ILogger* logger;
-    constexpr void setLogger(ILogger* l) {
-        logger = l;
-    }
+    // default std logger
+    class StdLogger : public ILogger {
+    private:
+        const char* getTimestamp() override {
+            // Return POSIX time as a string
+            time_t now = time(nullptr);
+            struct tm * timeinfo = localtime(&now);
+            static char buffer[80];
+            strftime(buffer, sizeof(buffer), "%H:%M:%S", timeinfo);
+            return buffer;
+        }
+    public:
+        StdLogger(LogLevel level = LOG_LEVEL_DEBUG) : ILogger(level) {}
+
+        void rawLog(const char* msg) override {
+            std::cout << msg;
+        }
+    };
+
+    class LogBroker {
+    private:
+        static inline ILogger* logger;
+
+    public:
+        template<typename T>
+        constexpr void setLogger(T* l = nullptr) {
+            logger = l ? l : new StdLogger(LOG_LEVEL_DEBUG);
+        }
+
+        static inline ILogger* getLogger() {
+            if (logger == nullptr) {
+                logger = new StdLogger(LOG_LEVEL_DEBUG);
+            }
+            return logger;
+        }
+    };
+
+    #define LOG_LEVEL LogBroker::getLogger()->getLevel()
+    #define SET_LOG_LEVEL(level) LogBroker::getLogger()->setLevel(level)
+
+    #define RAW_LOG(msg) LogBroker::getLogger()->rawLog(msg)
+
+    #define LOG(level, msg, ...)  Meta::LogBroker::getLogger()->log(level, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define LOG_ERROR(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_ERROR, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define LOG_WARNING(msg, ...) Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_WARNING, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define LOG_INFO(msg, ...)    Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_INFO, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+    #define LOG_DEBUG(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_DEBUG, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+
 }
