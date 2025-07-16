@@ -65,6 +65,22 @@ public:
         other.length = 0;
     }
 
+    // Assignment
+    Buffer<T, C>& operator=(const Buffer<T, C>& other) {
+        data = other.data;
+        length = other.length;
+        return *this;
+    }
+
+    // Move assignment
+    Buffer<T, C>& operator=(Buffer<T, C>&& other) noexcept {
+        data = std::move(other.data);
+        length = other.length;
+        other.length = 0;
+        return *this;
+    }
+    
+
     /**
      * @brief Reset a buffer to its default state.
      */
@@ -113,6 +129,12 @@ public:
         std::copy(arr, arr + len, data.begin() + length);
         length += len;
         return ErrorUnion<void>();
+    }
+
+    template<size_t N>
+    ErrorUnion<void> append(const std::array<T, N>& arr) {
+        static_assert(N <= C, "Buffer would overrun");
+        return append(arr.data(), arr.size());
     }
 
     /**
@@ -201,9 +223,7 @@ public:
     Buffer<uint8_t, C * sizeof(T)> toBytes() const {
         Buffer<uint8_t, C * sizeof(T)> bytes;
         for (size_t i = 0; i < length; i++) {
-            for(uint8_t j = 0; j < sizeof(T); j++) {
-                bytes.push_back((data[i] >> (j * 8)) & 0xFF);
-            }
+            bytes.append(getBytes(data[i]));
         }
         return bytes;
     }
@@ -247,7 +267,6 @@ public:
         LOG(level, msg);
         RAW_LOG("\r\n");
 
-        auto bytes = toBytes();
         size_t bytesWritten = 0;
         for (auto b : toBytes()) {
             char hexStr[3];

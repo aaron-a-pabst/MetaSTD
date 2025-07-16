@@ -26,11 +26,27 @@ namespace Meta {
 
         ~ErrorUnion() = default;
 
-        ErrorUnion(const ErrorUnion& other) = default;
-        ErrorUnion& operator=(const ErrorUnion& other) = default;
+        ErrorUnion(const ErrorUnion& other) : isError(other.isError) {
+            if (isError) {
+                error = other.error;
+            } else {
+                value = other.value;
+            }
+        }
+        ErrorUnion& operator=(const ErrorUnion& other) {
+            isError = other.isError;
+            value = other.value;
+            error = other.error;
+            return *this;
+        }
 
-        ErrorUnion(ErrorUnion&& other) noexcept = default;
-        ErrorUnion& operator=(ErrorUnion&& other) noexcept = default;
+        ErrorUnion(ErrorUnion&& other) noexcept : isError(other.isError), value(move(other.value)), error(other.error) {}
+        ErrorUnion& operator=(ErrorUnion&& other) noexcept {
+            isError = other.isError;
+            value = std::move(other.value);
+            error = other.error;
+            return *this;
+        }
 
         bool hasError() const { return isError; }
         T getValue() const { return value; }
