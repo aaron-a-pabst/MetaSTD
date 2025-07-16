@@ -6,4 +6,6 @@
 #include "Logging/ILogger.hpp"
 
 #include "Utils/ArrayUtils.hpp"
+#include "Utils/AbstractLock.hpp"
+
 #include "Structures/Buffer.hpp"
