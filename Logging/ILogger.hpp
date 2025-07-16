@@ -153,7 +153,7 @@ namespace Meta {
 
     public:
         template<typename T>
-        constexpr void setLogger(T* l = nullptr) {
+        static constexpr void setLogger(T* l = nullptr) {
             logger = l ? l : new StdLogger(LOG_LEVEL_DEBUG);
         }
 
@@ -164,6 +164,8 @@ namespace Meta {
             return logger;
         }
     };
+
+    #define SET_LOGGER(logger) Meta::LogBroker::setLogger(logger)
 
     /**
      * @brief The current logging level
