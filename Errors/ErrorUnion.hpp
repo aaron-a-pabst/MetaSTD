@@ -35,16 +35,29 @@ namespace Meta {
         }
         ErrorUnion& operator=(const ErrorUnion& other) {
             isError = other.isError;
-            value = other.value;
-            error = other.error;
+            if (isError) {
+                error = other.error;
+            } else {
+                value = other.value;
+            }
             return *this;
         }
 
-        ErrorUnion(ErrorUnion&& other) noexcept : isError(other.isError), value(move(other.value)), error(other.error) {}
+        ErrorUnion(ErrorUnion&& other) noexcept : isError(other.isError) {
+            if (isError) {
+                error = other.error;
+            } else {
+                value = std::move(other.value);
+            }
+        }
+
         ErrorUnion& operator=(ErrorUnion&& other) noexcept {
             isError = other.isError;
-            value = std::move(other.value);
-            error = other.error;
+            if (isError) {
+                error = other.error;
+            } else {
+                value = std::move(other.value);
+            }
             return *this;
         }
 
