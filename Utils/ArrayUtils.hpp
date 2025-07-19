@@ -25,6 +25,15 @@ namespace Meta {
         return arr;
     }
 
+    template <typename T, size_t N>
+    static constexpr std::array<T, N> repeat(T t) {
+        std::array<T, N> arr;
+        for (size_t i = 0; i < N; i++) {
+            arr[i] = t;
+        }
+        return arr;
+    }
+
     template<typename T>
     static constexpr std::array<uint8_t, sizeof(T)> getBytes(const T& t) {
         std::array<uint8_t, sizeof(T)> bytes;
