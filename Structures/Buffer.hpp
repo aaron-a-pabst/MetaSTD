@@ -61,7 +61,7 @@ public:
     }
 
     // Move
-    Buffer(Buffer<T, C>&& other) noexcept : data(other.data), length(other.length) {
+    Buffer(Buffer<T, C>&& other) noexcept : data(move(other.data)), length(other.length) {
         other.length = 0;
     }
 
@@ -260,7 +260,7 @@ public:
     /**
      * @brief Write the contents of this buffer to the local logging system in hexadecimal.
      */
-    void hexDump(LogLevel level = LOG_LEVEL_DEBUG, const char* msg = "") const {
+    void hexDump(const char* msg = "",LogLevel level = LOG_LEVEL_DEBUG) const {
         if (level < LOG_LEVEL)
             return;
 
