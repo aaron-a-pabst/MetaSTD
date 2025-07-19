@@ -6,8 +6,8 @@
 #include <cstdint>
 
 namespace Meta {
-    template<typename T, size_t N, size_t seed>
-    static std::array<T, N> randomArray() {
+    template<typename T, size_t N, size_t seed = 0x69>
+    static constexpr std::array<T, N> randomArray() {
         std::srand(seed);
         std::array<T, N> arr;
         for (size_t i = 0; i < N; i++) {
