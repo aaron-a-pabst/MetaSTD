@@ -62,6 +62,6 @@ namespace Meta {
     /**
      * @brief Create an occurance of a given error def.
      */
-    #define MAKE_ERROR(errorDef, msg) Error{errorDef, msg, __LINE__}
+    #define MAKE_ERROR(errorDef, msg) Meta::Error{errorDef, msg, __LINE__}
 }
   

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Harbor {
+namespace Meta {
     /**
      * @brief Thin lock wrapper.
      */

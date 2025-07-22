@@ -4,8 +4,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <array>
+#if !defined(PLATFORM_ID)
 #include <iostream>
 #include <ctime>
+#endif
 
 namespace Meta {
     typedef enum {
@@ -127,11 +129,10 @@ namespace Meta {
             
     };
 
-    // default std logger
+#if !defined(PLATFORM_ID)
     class StdLogger : public ILogger {
     private:
         const char* getTimestamp() override {
-            // Return POSIX time as a string
             time_t now = time(nullptr);
             struct tm * timeinfo = localtime(&now);
             static char buffer[80];
@@ -140,11 +141,19 @@ namespace Meta {
         }
     public:
         StdLogger(LogLevel level = LOG_LEVEL_DEBUG) : ILogger(level) {}
-
         void rawLog(const char* msg) override {
             std::cout << msg;
         }
     };
+#else
+    class NullLogger : public ILogger {
+    private:
+        const char* getTimestamp() override { return ""; }
+    public:
+        NullLogger() : ILogger(LOG_LEVEL_ERROR) {}
+        void rawLog(const char*) override {}
+    };
+#endif
 
     // If you find youself using this class directly, you're bad and you should feel bad.
     class LogBroker {
@@ -153,13 +162,27 @@ namespace Meta {
 
     public:
         template<typename T>
-        static constexpr void setLogger(T* l = nullptr) {
-            logger = l ? l : new StdLogger(LOG_LEVEL_DEBUG);
+        static inline void setLogger(T* l = nullptr) {
+            if (l) {
+                logger = l;
+                return;
+            }
+#if defined(PLATFORM_ID)
+            static NullLogger defaultLogger;
+#else
+            static StdLogger defaultLogger(LOG_LEVEL_DEBUG);
+#endif
+            logger = &defaultLogger;
         }
 
         static inline ILogger* getLogger() {
             if (logger == nullptr) {
-                logger = new StdLogger(LOG_LEVEL_DEBUG);
+#if defined(PLATFORM_ID)
+                static NullLogger defaultLogger;
+#else
+                static StdLogger defaultLogger(LOG_LEVEL_DEBUG);
+#endif
+                logger = &defaultLogger;
             }
             return logger;
         }
