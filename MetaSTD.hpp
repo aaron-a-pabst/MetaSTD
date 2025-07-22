@@ -7,5 +7,6 @@
 
 #include "Utils/ArrayUtils.hpp"
 #include "Utils/AbstractLock.hpp"
+#include "Utils/AbstractTime.hpp"
 
 #include "Structures/Buffer.hpp"
