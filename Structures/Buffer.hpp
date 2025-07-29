@@ -22,7 +22,7 @@ template<typename T, size_t C>
 class Buffer {
 private:
     std::array<T, C> data; // The underlying (static) array
-    size_t length; // How many Ts are currently stored in the buffer
+    size_t length;         // How many Ts are currently stored in the buffer
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     }
 
     /**
-     * @brief Wrap a buffer around a (copy of a ) C-style array. 
+     * @brief Wrap a buffer around a (copy of a) C-style array. 
      */
     Buffer(const T* arr, size_t len) : length(len) {
         std::copy(arr, arr + len, data.begin());
@@ -142,7 +142,7 @@ public:
      */
     template<size_t N>
     ErrorUnion<void> append(const Buffer<T, N>& other) {
-        static_assert(N <= C, "Buffer overrun");
+        static_assert(N <= C, "Buffer would overrun");
         return append(other.cArr(), other.size());
     }
 
