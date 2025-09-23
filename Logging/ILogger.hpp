@@ -69,7 +69,7 @@ namespace Meta {
             this->rawLog(":");
             
             char lineStr[10];
-            snprintf(lineStr, sizeof(lineStr), "%zu", line);
+            snprintf(lineStr, sizeof(lineStr), "%lu", (unsigned long)line);
             this->rawLog(lineStr);
             
             this->rawLog(": ");
@@ -95,7 +95,7 @@ namespace Meta {
             this->rawLog(": ");
             
             char lineStr[10];
-            snprintf(lineStr, sizeof(lineStr), "%zu", line);
+            snprintf(lineStr, sizeof(lineStr), "%lu", (unsigned long)line);
             this->rawLog(lineStr);
             
             // Parse args
@@ -201,10 +201,15 @@ namespace Meta {
      */
     #define RAW_LOG(msg) LogBroker::getLogger()->rawLog(msg)
 
-    #define LOG(level, msg, ...)  Meta::LogBroker::getLogger()->log(level, msg, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define LOG_ERROR(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_ERROR, msg, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define LOG_WARNING(msg, ...) Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_WARNING, msg, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define LOG_INFO(msg, ...)    Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_INFO, msg, __FILE__, __LINE__, ##__VA_ARGS__)
-    #define LOG_DEBUG(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_DEBUG, msg, __FILE__, __LINE__, ##__VA_ARGS__)
+    /**
+     * @brief Strip the path from file names
+     */
+    #define SIMPLIFY_F_NAME(fpath) strrchr(fpath, '/') ? strrchr(fpath, '/') + 1 : fpath
+
+    #define LOG(level, msg, ...)  Meta::LogBroker::getLogger()->log(level, msg, SIMPLIFY_F_NAME(__FILE__), __LINE__, ##__VA_ARGS__)
+    #define LOG_ERROR(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_ERROR, msg, SIMPLIFY_F_NAME(__FILE__), __LINE__, ##__VA_ARGS__)
+    #define LOG_WARNING(msg, ...) Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_WARNING, msg, SIMPLIFY_F_NAME(__FILE__), __LINE__, ##__VA_ARGS__)
+    #define LOG_INFO(msg, ...)    Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_INFO, msg, SIMPLIFY_F_NAME(__FILE__), __LINE__, ##__VA_ARGS__)
+    #define LOG_DEBUG(msg, ...)   Meta::LogBroker::getLogger()->log(Meta::LOG_LEVEL_DEBUG, msg, SIMPLIFY_F_NAME(__FILE__), __LINE__, ##__VA_ARGS__)
 
 }
