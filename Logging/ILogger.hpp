@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdarg>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -23,12 +24,25 @@ namespace Meta {
      */
     class ILogger {
     private:
+        LogLevel level;
+
+    protected:
         virtual const char* getTimestamp() = 0;
 
-        LogLevel level;
+        static char levelTag(LogLevel level) {
+            switch (level) {
+                case LOG_LEVEL_ERROR:   return 'E';
+                case LOG_LEVEL_WARNING: return 'W';
+                case LOG_LEVEL_INFO:    return 'I';
+                case LOG_LEVEL_DEBUG:   return 'D';
+            }
+            return '?';
+        }
 
     public:
         ILogger(LogLevel level) : level(level) {}
+
+        virtual ~ILogger() = default;
 
         virtual void rawLog(const char* msg) = 0;
 
@@ -36,78 +50,47 @@ namespace Meta {
             return level;
         }
 
-        void writeLevel(LogLevel level) {
-            switch (level) {
-                case LOG_LEVEL_DEBUG:
-                    rawLog("[DEBUG]:");
-                    break;
-                case LOG_LEVEL_INFO:
-                    rawLog("[INFO]:");
-                    break;
-                case LOG_LEVEL_WARNING:
-                    rawLog("[WARNING]:");
-                    break;
-                case LOG_LEVEL_ERROR:
-                    rawLog("[ERROR]:");
-                    break;
-            }
+        void setLevel(LogLevel l) {
+            level = l;
         }
 
-        void log(LogLevel level, const char* msg, const char* file, size_t line) {
-            if (level > this->level) 
-                return;
-            
-            // Log level string
-            writeLevel(level);
-
-            // Log timestamp
-            this->rawLog(getTimestamp());
-
-            this->rawLog(":");
-
-            this->rawLog(file);
-            this->rawLog(":");
-            
-            char lineStr[10];
-            snprintf(lineStr, sizeof(lineStr), "%lu", (unsigned long)line);
-            this->rawLog(lineStr);
-            
-            this->rawLog(": ");
-
-            // Log message
-            this->rawLog(msg);
-            
-            this->rawLog("\n\r");
-        }
-
-        // printf style log
-        template<typename... Args>
-        void log(LogLevel level, const char* msg, const char* file, size_t line, Args... args) {
-            if (level > this->level) return;
-            
-            // Log level string
-            writeLevel(level);
-
-            this->rawLog(getTimestamp());
-            this->rawLog(":");
-            
-            this->rawLog(file);
-            this->rawLog(": ");
-            
-            char lineStr[10];
-            snprintf(lineStr, sizeof(lineStr), "%lu", (unsigned long)line);
-            this->rawLog(lineStr);
-            
-            // Parse args
+        virtual void vlog(LogLevel level, const char* msg, const char* file, size_t line, va_list args) {
             char buffer[1024];
-            snprintf(buffer, sizeof(buffer), msg, args...);
-            this->rawLog(buffer);
-            
-            this->rawLog("\n\r");
+            int written = snprintf(buffer, sizeof(buffer),
+                                   "[%s] %c: %s:%lu > ",
+                                   getTimestamp(),
+                                   levelTag(level),
+                                   file,
+                                   (unsigned long)line);
+            if (written < 0) {
+                return;
+            }
+            size_t used = (static_cast<size_t>(written) < sizeof(buffer))
+                            ? static_cast<size_t>(written)
+                            : sizeof(buffer) - 1;
+            int body = vsnprintf(buffer + used, sizeof(buffer) - used, msg, args);
+            if (body > 0) {
+                used += (static_cast<size_t>(body) < sizeof(buffer) - used)
+                          ? static_cast<size_t>(body)
+                          : sizeof(buffer) - used - 1;
+            }
+            if (used < sizeof(buffer) - 1) {
+                buffer[used++] = '\n';
+            }
+            buffer[used] = '\0';
+            rawLog(buffer);
+        }
+
+        void log(LogLevel level, const char* msg, const char* file, size_t line, ...) {
+            if (level > this->level) return;
+            va_list args;
+            va_start(args, line);
+            vlog(level, msg, file, line, args);
+            va_end(args);
         }
 
         template<typename T, size_t N>
-        void log_hexdump(const std::array<T, N>& arr, const char* file, size_t line, LogLevel level = LOG_LEVEL_INFO) {
+        void log_hexdump(const std::array<T, N>& arr, const char* /*file*/, size_t /*line*/, LogLevel /*level*/ = LOG_LEVEL_INFO) {
             size_t bytesWritten = 0;
             for (auto t : arr) {
                 for (size_t i = 0; i < sizeof(T); i++) {
@@ -118,7 +101,7 @@ namespace Meta {
                     bytesWritten++;
 
                     if (bytesWritten % 16 == 0) {
-                        this->rawLog("\n\r");
+                        this->rawLog("\n");
                     }
                     else if (bytesWritten % 8 == 0) {
                         this->rawLog(" ");
@@ -126,7 +109,7 @@ namespace Meta {
                 }
             }
         }
-            
+
     };
 
 #if !defined(PLATFORM_ID)
